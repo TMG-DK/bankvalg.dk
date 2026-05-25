@@ -599,17 +599,16 @@
   }
   .req-toggle-thumb {
     position: absolute;
-    top: 50%; left: 3px;
+    top: 3px; left: 3px;
     width: 10px; height: 10px;
     background: var(--accent);
     border-radius: 50%;
-    transform: translateY(-50%);
-    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), background 0.18s;
+    transition: left 0.2s cubic-bezier(0.4, 0, 0.2, 1), background 0.18s;
   }
   .req-toggle.on .req-toggle-switch { background: var(--accent); }
   .req-toggle.on .req-toggle-thumb {
     background: #FFF;
-    transform: translateX(12px) translateY(-50%);
+    left: 15px;
   }
   .req-toggle-label {
     font-size: 11px; font-weight: 500;
@@ -4682,10 +4681,13 @@ function App() {
                 const costs = columns.map(({bank, pkg}) => {
                   const onb = parseKr(pkg.onboarding);
                   const annualY1 = computeAnnualCost(pkg, answers, 1);
-                  return { bank, pkg, y1: onb + annualY1 };
+                  const y1 = onb + annualY1;
+                  const meets = meetsMustHaves(pkg, answers);
+                  return { bank, pkg, y1, rankCost: meets ? y1 : y1 + 1e9, meets };
                 });
-                const minY1 = Math.min(...costs.map(c => c.y1));
-                const isWinner = c => c.y1 === minY1;
+                // Winner = cheapest QUALIFYING package (must-have requirements respected)
+                const minRank = Math.min(...costs.map(c => c.rankCost));
+                const isWinner = c => c.rankCost === minRank;
                 return (<>
                   <tr className="price-section-row">
                     <td className="cat-spacer"></td>
