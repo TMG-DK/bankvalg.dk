@@ -1307,11 +1307,16 @@
   /* ──────────── Mobile redesign (winner card + collapsed bank list) ──────────── */
   .mobile-view { display: none; }
   @media (max-width: 768px) {
+    /* Let the whole page scroll naturally (override the fixed-height desktop layout) */
+    html, body { height: auto !important; min-height: 100%; }
+    body { display: block !important; overflow-y: auto; }
+    #root { display: block !important; flex: none !important; min-height: 100vh; }
+    .main { display: block !important; flex: none !important; overflow: visible !important; min-height: 0; padding: 0 12px; }
+    .table-area { flex: none !important; overflow: visible !important; min-height: 0; padding: 0; }
+
     /* Hide desktop comparison surfaces */
     .compare-table, .cost-chart, .conclusion-bar { display: none !important; }
     .controls { display: none; }
-    .table-area { padding: 0; overflow: visible; }
-    .main { padding: 0 12px; }
 
     /* Mobile view */
     .mobile-view { display: block; padding: 12px 0 24px; }
@@ -4146,9 +4151,10 @@ function isCellPulsing(pkg, rowId) {
 // ─── Mobile view (winner card + collapsed bank list) ─────────────────────────
 function MobileSliders({ answers, setAnswers, t }) {
   const cfgs = [
-    { key: 'txMonth',      label: t.rowLabels?.domestic_included || 'Overførsler',         min: 0, max: 500, step: 10, unit: 'stk/md' },
-    { key: 'intlPerMonth', label: t.rowLabels?.intl_transfer    || 'Internationale ovf.', min: 0, max: 50,  step: 1,  unit: 'stk/md' },
-    { key: 'fxVolume',     label: t.rowLabels?.fx_fee           || 'Valutaveksling',       min: 0, max: 100, step: 5,  unit: 'k DKK/md' },
+    { key: 'txMonth',         label: t.rowLabels?.domestic_included    || 'Overførsler',         min: 0, max: 500, step: 10, unit: 'stk/md' },
+    { key: 'intlPerMonth',    label: t.rowLabels?.intl_transfer        || 'Internationale ovf.', min: 0, max: 50,  step: 1,  unit: 'stk/md' },
+    { key: 'fxVolume',        label: t.rowLabels?.fx_fee               || 'Valutaveksling',       min: 0, max: 100, step: 5,  unit: 'k DKK/md' },
+    { key: 'physCardsNeeded', label: t.rowLabels?.physical_card_extra  || 'Fysiske kort',         min: 1, max: 20,  step: 1,  unit: 'kort' },
   ];
   return (
     <div className="mv-sliders">
@@ -4667,9 +4673,6 @@ function App() {
 
       {/* NOTICE */}
       <div className="notice">
-        <span>{t.notice1}</span>
-        <span>{t.notice2}</span>
-        <span>{t.notice3}</span>
         <span className="notice-updated" title={window.DATA_LAST_UPDATED ||''}>
           <span className="notice-updated-label">{t.lastUpdated ||'Data updated'}</span>
           {(() => {
