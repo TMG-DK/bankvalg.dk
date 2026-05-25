@@ -1480,6 +1480,16 @@
       border-bottom-color: var(--rule, #E4DFD4);
     }
     .mv-bank-row .mv-detail-label { color: var(--muted, #8B8580); }
+    .mv-bank-reason {
+      font-size: 12px; font-style: italic;
+      color: var(--muted, #8B8580);
+      padding: 8px 0 2px;
+      line-height: 1.45;
+    }
+    .mv-winner-reason {
+      font-size: 12px; opacity: 0.9; font-style: italic;
+      margin-top: 8px; line-height: 1.45;
+    }
   }
 </style>
 </head>
@@ -2471,7 +2481,7 @@ function getDisqualifyReason(pkg, answers) {
   if (answers.needsLoan && (pkg.business_loan ==='Nej'|| pkg.business_loan ==='—'|| !pkg.business_loan)) missing.push('erhvervslån');
   if (missing.length === 0) return null;
   const list = missing.length === 1 ? missing[0] : missing.join(' og ');
-  return 'Du har valgt at '+ list +' er påkrævet, men denne bank tilbyder det ikke.';
+  return 'Du har valgt at '+ list +' er påkrævet, hvilket ikke understøttes af denne bank.';
 }
 
 // Tooltip variant with an "i" icon — used to explain why a cell shows "Ikke muligt".
@@ -4374,9 +4384,12 @@ function MobileView({ columns, answers, setAnswers, t, currency, country, lang }
           const reason = getDisqualifyReason(winner.pkg, answers);
           if (reason) {
             return (
-              <div className="mv-winner-cost">
-                <span className="mv-winner-cost-amt" style={{fontSize:18}}>{t.notPossible ||'Ikke muligt'} <InfoTip text={reason} /></span>
-              </div>
+              <>
+                <div className="mv-winner-cost">
+                  <span className="mv-winner-cost-amt" style={{fontSize:20}}>{t.notPossible ||'Ikke muligt'}</span>
+                </div>
+                <div className="mv-winner-reason">{reason}</div>
+              </>
             );
           }
           return (
@@ -4415,7 +4428,7 @@ function MobileView({ columns, answers, setAnswers, t, currency, country, lang }
                   </div>
                   <div className="mv-bank-cost">
                     {reason ? (
-                      <span className="not-possible">{t.notPossible ||'Ikke muligt'} <InfoTip text={reason} /></span>
+                      <span className="not-possible">{t.notPossible ||'Ikke muligt'}</span>
                     ) : `${fmtMoneyPlain(y1, currency)} kr`}
                   </div>
                   <div className="mv-bank-chevron">
@@ -4426,6 +4439,7 @@ function MobileView({ columns, answers, setAnswers, t, currency, country, lang }
                 </div>
                 {isOpen && (
                   <div className="mv-bank-details">
+                    {reason && <div className="mv-bank-reason">{reason}</div>}
                     <MobileBankDetails pkg={pkg} currency={currency} sourceCurrency={sourceCurrency} lang={lang} answers={answers} t={t} />
                   </div>
                 )}
