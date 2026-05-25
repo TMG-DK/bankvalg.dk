@@ -582,39 +582,37 @@
   .row-label-text { display: flex; align-items: center; gap: 6px; }
   .req-toggle {
     margin-top: 6px;
-    position: relative;
-    display: inline-grid;
-    grid-template-columns: 1fr 1fr;
-    background: var(--rule);
-    border-radius: 14px;
-    padding: 2px;
-    cursor: pointer;
-    user-select: none;
+    display: inline-flex; align-items: center; gap: 8px;
+    background: transparent; border: none; padding: 0;
+    cursor: pointer; user-select: none;
     align-self: flex-start;
-    min-width: 180px;
-    transition: background 0.18s;
+    font-family: inherit;
   }
-  .req-toggle-opt {
-    position: relative; z-index: 1;
-    text-align: center;
-    padding: 4px 10px;
+  .req-toggle-switch {
+    position: relative;
+    width: 32px; height: 18px;
+    background: var(--rule);
+    border-radius: 10px;
+    transition: background 0.18s;
+    flex-shrink: 0;
+  }
+  .req-toggle-thumb {
+    position: absolute; top: 2px; left: 2px;
+    width: 14px; height: 14px;
+    background: #FFF;
+    border-radius: 50%;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .req-toggle.on .req-toggle-switch { background: var(--accent); }
+  .req-toggle.on .req-toggle-thumb { transform: translateX(14px); }
+  .req-toggle-label {
     font-size: 11px; font-weight: 500;
     color: var(--muted);
     transition: color 0.18s;
     white-space: nowrap;
   }
-  .req-toggle-thumb {
-    position: absolute; top: 2px; left: 2px; bottom: 2px;
-    width: calc(50% - 2px);
-    background: #FFF;
-    border-radius: 12px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.12);
-    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), background 0.18s;
-  }
-  .req-toggle.on { background: var(--accent); }
-  .req-toggle.on .req-toggle-thumb { transform: translateX(100%); background: #FFF; }
-  .req-toggle.off .req-toggle-opt:first-child { color: var(--text); font-weight: 600; }
-  .req-toggle.on  .req-toggle-opt:last-child  { color: var(--accent); font-weight: 600; }
+  .req-toggle.on .req-toggle-label { color: var(--accent); font-weight: 600; }
   .inline-slider-wrap {
     display: flex; align-items: center; gap: 6px;
     margin-top: 5px; padding-right: 4px;
@@ -2422,16 +2420,15 @@ function RequireToggle({ rowId, answers, setAnswers, t }) {
   const cfg = MUST_HAVE_ROWS[rowId];
   if (!cfg) return null;
   const active = !!answers[cfg.answerKey];
-  const offLabel = t.reqOff ||'Ikke nødvendigt';
-  const onLabel  = t.reqOn  ||'Påkrævet';
+  const label = active ? (t.reqOn ||'Påkrævet') : (t.reqOff ||'Ikke nødvendigt');
   return (
-    <div className={`req-toggle ${active ?'on':'off'}`}
+    <button type="button"
+         className={`req-toggle ${active ?'on':'off'}`}
          role="switch" aria-checked={active}
          onClick={() => setAnswers(a => ({ ...a, [cfg.answerKey]: !active }))}>
-      <span className="req-toggle-opt">{offLabel}</span>
-      <span className="req-toggle-opt">{onLabel}</span>
-      <span className="req-toggle-thumb" />
-    </div>
+      <span className="req-toggle-switch"><span className="req-toggle-thumb" /></span>
+      <span className="req-toggle-label">{label}</span>
+    </button>
   );
 }
 
