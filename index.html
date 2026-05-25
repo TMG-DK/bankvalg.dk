@@ -580,6 +580,21 @@
     min-width: var(--label-w);
   }
   .row-label-text { display: flex; align-items: center; gap: 6px; }
+  .must-have-toggle {
+    margin-top: 6px;
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--rule);
+    padding: 3px 9px; border-radius: 12px;
+    font-size: 11px; font-weight: 500; cursor: pointer;
+    transition: all 0.15s;
+    align-self: flex-start;
+  }
+  .must-have-toggle:hover { color: var(--text); border-color: var(--muted); }
+  .must-have-toggle.active {
+    background: var(--accent); color: #FFF; border-color: var(--accent);
+  }
+  .must-have-toggle.active:hover { background: var(--accent); opacity: 0.9; }
   .inline-slider-wrap {
     display: flex; align-items: center; gap: 6px;
     margin-top: 5px; padding-right: 4px;
@@ -1344,6 +1359,13 @@
       width: 18px; height: 18px; border-radius: 50%;
       background: var(--accent, #D97757); cursor: pointer; border: 2px solid #FFF;
     }
+    .mv-must-haves { padding-top: 4px; border-top: 1px solid var(--rule, #E4DFD4); }
+    .mv-must-haves-label {
+      font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--muted, #8B8580); margin-bottom: 8px;
+    }
+    .mv-must-haves-row { display: flex; flex-wrap: wrap; gap: 6px; }
+    .mv-must-haves-row .must-have-toggle { margin-top: 0; font-size: 12px; padding: 5px 12px; }
 
     /* Winner card */
     .mv-winner {
@@ -2079,6 +2101,7 @@ const EXTRA_DA = {
   wizardStep:'Trin', wizardOf:'af',
   viewSummary:'Oversigt', viewDetailed:'Detaljeret',
   cheapest:'Billigste valg', otherBanks:'Andre banker', seeDetails:'Se detaljer', hideDetails:'Skjul detaljer',
+  mustHaveSection:'Must have', mustHaveLabel:'Must have', mustHaveLabelOn:'Krav', mustHaveOn:'Klik for at slå krav fra', mustHaveOff:'Klik for at gøre dette til et krav',
   revenueNowQ:'Årlig omsætning (i år)', revenueNextQ:'Forventet omsætning næste år',
   fteQ:'Medarbejdere (FTE)', adbQ:'Gennemsnitlig saldo på kontoen',
   fxVolumeQ:'Månedlig FX-volumen', cashIntensiveQ:'Håndterer I kontanter?',
@@ -2369,6 +2392,35 @@ function InlineSlider({ rowId, answers, setAnswers }) {
       <span className="inline-slider-val">{val} {cfg.unit}</span>
     </div>
   );
+}
+
+// Must-have toggle: for boolean "require this feature" rows like overdraft/business_loan.
+// When active, packages without the feature get pushed to the bottom of the ranking.
+const MUST_HAVE_ROWS = {
+  overdraft:     { answerKey: 'needsOverdraft' },
+  business_loan: { answerKey: 'needsLoan' },
+};
+function MustHaveToggle({ rowId, answers, setAnswers, t }) {
+  const cfg = MUST_HAVE_ROWS[rowId];
+  if (!cfg) return null;
+  const active = !!answers[cfg.answerKey];
+  return (
+    <button
+      type="button"
+      className={`must-have-toggle ${active ?'active':''}`}
+      onClick={() => setAnswers(a => ({ ...a, [cfg.answerKey]: !active }))}
+      title={active ? (t.mustHaveOn ||'Klik for at slå krav fra') : (t.mustHaveOff ||'Klik for at gøre dette til et krav')}>
+      {active ? (t.mustHaveLabelOn ||'✓ Krav') : (t.mustHaveLabel ||'Must have')}
+    </button>
+  );
+}
+
+// Check whether a package meets the user's must-have requirements.
+// Returns true if all required features are satisfied. Used in ranking.
+function meetsMustHaves(pkg, answers) {
+  if (answers.needsOverdraft && pkg.overdraft !=='Ja') return false;
+  if (answers.needsLoan && (pkg.business_loan ==='Nej'|| pkg.business_loan ==='—'|| !pkg.business_loan)) return false;
+  return true;
 }
 
 function CellVal({ val, currency, sourceCurrency, lang }) {
@@ -4165,6 +4217,10 @@ function MobileSliders({ answers, setAnswers, t }) {
     { key: 'fxVolume',        label: t.rowLabels?.fx_fee               || 'Valutaveksling',       min: 0, max: 100, step: 5,  unit: 'k DKK/md' },
     { key: 'physCardsNeeded', label: t.rowLabels?.physical_card_extra  || 'Fysiske kort',         min: 1, max: 20,  step: 1,  unit: 'kort' },
   ];
+  const mustHaves = [
+    { key: 'needsOverdraft', label: t.rowLabels?.overdraft     || 'Kassekredit' },
+    { key: 'needsLoan',      label: t.rowLabels?.business_loan || 'Erhvervslån' },
+  ];
   return (
     <div className="mv-sliders">
       {cfgs.map(c => {
@@ -4180,6 +4236,21 @@ function MobileSliders({ answers, setAnswers, t }) {
           </div>
         );
       })}
+      <div className="mv-must-haves">
+        <div className="mv-must-haves-label">{t.mustHaveSection ||'Must have'}</div>
+        <div className="mv-must-haves-row">
+          {mustHaves.map(m => {
+            const active = !!answers[m.key];
+            return (
+              <button key={m.key} type="button"
+                className={`must-have-toggle ${active ?'active':''}`}
+                onClick={() => setAnswers(a => ({ ...a, [m.key]: !active }))}>
+                {m.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }
@@ -4219,12 +4290,14 @@ function MobileView({ columns, answers, setAnswers, t, currency, country, lang }
   const [expanded, setExpanded] = React.useState({});
   const [winnerOpen, setWinnerOpen] = React.useState(false);
 
-  // Rank by Year-1 total cost — cheapest first
+  // Rank by Year-1 total cost — cheapest first, push non-qualifying must-haves to bottom
   const sortedCols = React.useMemo(() => {
     return [...columns].sort((a, b) => {
       const ay = parseKr(a.pkg.onboarding) + computeAnnualCost(a.pkg, answers, 1);
       const by = parseKr(b.pkg.onboarding) + computeAnnualCost(b.pkg, answers, 1);
-      return ay - by;
+      const aRank = meetsMustHaves(a.pkg, answers) ? ay : ay + 1e9;
+      const bRank = meetsMustHaves(b.pkg, answers) ? by : by + 1e9;
+      return aRank - bRank;
     });
   }, [columns, answers]);
 
@@ -4397,11 +4470,15 @@ function App() {
     visibleBanks.forEach(bank => {
       bank.packages.forEach(pkg => {
         const y1 = parseKr(pkg.onboarding) + computeAnnualCost(pkg, answers, 1);
-        scored.push({ bank, pkg, score: scorePackageDetailed(pkg, bank, answers), y1 });
+        // Push non-qualifying packages to the bottom when a must-have toggle is on
+        const meets = meetsMustHaves(pkg, answers);
+        const rankCost = meets ? y1 : y1 + 1e9;
+        scored.push({ bank, pkg, score: scorePackageDetailed(pkg, bank, answers), y1, rankCost, meets });
       });
     });
-    const sorted = viewMode ==='summary'? scored.sort((a, b) => a.y1 - b.y1)         // cheapest first
-      : scored.sort((a, b) => b.score - a.score);  // best-fit first
+    const sorted = viewMode ==='summary'
+      ? scored.sort((a, b) => a.rankCost - b.rankCost)  // cheapest qualifying first
+      : scored.sort((a, b) => b.score - a.score);       // best-fit first
     return sorted.slice(0, 5);
   }, [visibleBanks, answers, viewMode]);
   const topScore = results[0]?.score || 100;
@@ -4414,7 +4491,10 @@ function App() {
       let best = null;
       bank.packages.forEach(pkg => {
         const y1 = parseKr(pkg.onboarding) + computeAnnualCost(pkg, answers, 1);
-        if (!best || y1 < best.y1) best = { pkg, y1 };
+        // Prefer packages that meet must-have requirements; fall back to cheapest if none qualify
+        const meets = meetsMustHaves(pkg, answers);
+        const rankCost = meets ? y1 : y1 + 1e9;
+        if (!best || rankCost < best.rankCost) best = { pkg, y1, rankCost };
       });
       if (best) map[bank.id] = best.pkg.name;
     });
@@ -4637,6 +4717,7 @@ function App() {
                           {row.tooltip && <Tip text={(t.rowTooltips && t.rowTooltips[row.id]) || row.tooltip} />}
                         </div>
                         <InlineSlider rowId={row.id} answers={answers} setAnswers={setAnswers} />
+                        <MustHaveToggle rowId={row.id} answers={answers} setAnswers={setAnswers} t={t} />
                       </td>
                       {columns.map(({bank, pkg}) => {
                         const val = pkg[row.id];
