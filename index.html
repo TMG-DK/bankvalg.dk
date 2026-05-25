@@ -617,6 +617,25 @@
     white-space: nowrap;
   }
   .req-toggle.on .req-toggle-label { color: var(--accent); font-weight: 600; }
+
+  /* "Ikke muligt" state — replaces the price for disqualified packages */
+  .not-possible {
+    display: inline-flex; align-items: center; gap: 4px;
+    color: var(--muted);
+    font-style: italic;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .not-possible-cell { background: rgba(0,0,0,0.025); }
+  .tooltip-icon.info-icon {
+    background: var(--muted);
+    color: #FFF;
+    font-style: normal;
+    font-family: Georgia, serif;
+  }
+  /* Dim disqualified mobile bank rows */
+  .mv-bank-disqualified .mv-bank-name,
+  .mv-bank-disqualified .mv-bank-pkg { opacity: 0.55; }
   .inline-slider-wrap {
     display: flex; align-items: center; gap: 6px;
     margin-top: 5px; padding-right: 4px;
@@ -1422,8 +1441,8 @@
 
     /* Other banks list */
     .mv-others-head {
-      font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
-      color: var(--muted, #8B8580); margin: 8px 4px 8px;
+      font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+      color: var(--text, #3D3935); margin: 8px 4px 8px;
     }
     .mv-bank-row {
       background: var(--surface, #FFF); border-radius: 12px;
@@ -1453,8 +1472,8 @@
     }
     .mv-bank-row.expanded .mv-bank-details { display: block; }
     .mv-bank-group {
-      font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
-      color: var(--muted, #8B8580); padding: 10px 0 4px;
+      font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+      color: var(--text, #3D3935); padding: 12px 0 5px;
     }
     .mv-bank-row .mv-detail-row {
       color: var(--text, #3D3935);
@@ -2120,7 +2139,7 @@ const EXTRA_DA = {
   wizardStep:'Trin', wizardOf:'af',
   viewSummary:'Oversigt', viewDetailed:'Detaljeret',
   cheapest:'Billigste valg', otherBanks:'Andre banker', seeDetails:'Se detaljer', hideDetails:'Skjul detaljer',
-  reqOff:'Ikke nødvendigt', reqOn:'Påkrævet',
+  reqOff:'Ikke nødvendigt', reqOn:'Påkrævet', notPossible:'Ikke muligt',
   revenueNowQ:'Årlig omsætning (i år)', revenueNextQ:'Forventet omsætning næste år',
   fteQ:'Medarbejdere (FTE)', adbQ:'Gennemsnitlig saldo på kontoen',
   fxVolumeQ:'Månedlig FX-volumen', cashIntensiveQ:'Håndterer I kontanter?',
@@ -2442,6 +2461,27 @@ function meetsMustHaves(pkg, answers) {
   if (answers.needsOverdraft && pkg.overdraft !=='Ja') return false;
   if (answers.needsLoan && (pkg.business_loan ==='Nej'|| pkg.business_loan ==='—'|| !pkg.business_loan)) return false;
   return true;
+}
+
+// Builds a Danish-language explanation for why a package fails must-have requirements.
+// Returns null if the package qualifies.
+function getDisqualifyReason(pkg, answers) {
+  const missing = [];
+  if (answers.needsOverdraft && pkg.overdraft !=='Ja') missing.push('kassekredit');
+  if (answers.needsLoan && (pkg.business_loan ==='Nej'|| pkg.business_loan ==='—'|| !pkg.business_loan)) missing.push('erhvervslån');
+  if (missing.length === 0) return null;
+  const list = missing.length === 1 ? missing[0] : missing.join(' og ');
+  return 'Du har valgt at '+ list +' er påkrævet, men denne bank tilbyder det ikke.';
+}
+
+// Tooltip variant with an "i" icon — used to explain why a cell shows "Ikke muligt".
+function InfoTip({ text }) {
+  return (
+    <span className="tooltip-wrap info-tip">
+      <span className="tooltip-icon info-icon">i</span>
+      <span className="tooltip-box">{text}</span>
+    </span>
+  );
 }
 
 function CellVal({ val, currency, sourceCurrency, lang }) {
@@ -4330,10 +4370,22 @@ function MobileView({ columns, answers, setAnswers, t, currency, country, lang }
         <div className="mv-winner-badge">{t.cheapest || 'Billigste valg'}</div>
         <div className="mv-winner-name">{winner.bank.name}</div>
         <div className="mv-winner-pkg">{winner.pkg.name}</div>
-        <div className="mv-winner-cost">
-          <span className="mv-winner-cost-amt">{fmtMoneyPlain(winnerY1, currency)} kr</span>
-          <span className="mv-winner-cost-label">/ år 1</span>
-        </div>
+        {(() => {
+          const reason = getDisqualifyReason(winner.pkg, answers);
+          if (reason) {
+            return (
+              <div className="mv-winner-cost">
+                <span className="mv-winner-cost-amt" style={{fontSize:18}}>{t.notPossible ||'Ikke muligt'} <InfoTip text={reason} /></span>
+              </div>
+            );
+          }
+          return (
+            <div className="mv-winner-cost">
+              <span className="mv-winner-cost-amt">{fmtMoneyPlain(winnerY1, currency)} kr</span>
+              <span className="mv-winner-cost-label">/ år 1</span>
+            </div>
+          );
+        })()}
         <div className="mv-winner-actions">
           <button className="mv-winner-toggle" onClick={() => setWinnerOpen(o => !o)}>
             {winnerOpen ? (t.hideDetails || 'Skjul detaljer') : (t.seeDetails || 'Se detaljer')}
@@ -4352,15 +4404,20 @@ function MobileView({ columns, answers, setAnswers, t, currency, country, lang }
           <div className="mv-others-head">{t.otherBanks || 'Andre banker'}</div>
           {rest.map(({ bank, pkg }) => {
             const y1 = parseKr(pkg.onboarding) + computeAnnualCost(pkg, answers, 1);
+            const reason = getDisqualifyReason(pkg, answers);
             const isOpen = !!expanded[bank.id + pkg.name];
             return (
-              <div key={bank.id + pkg.name} className={`mv-bank-row ${isOpen ? 'expanded' : ''}`}>
+              <div key={bank.id + pkg.name} className={`mv-bank-row ${isOpen ? 'expanded' : ''} ${reason ? 'mv-bank-disqualified' : ''}`}>
                 <div className="mv-bank-head" onClick={() => setExpanded(e => ({ ...e, [bank.id + pkg.name]: !isOpen }))}>
                   <div className="mv-bank-head-text">
                     <div className="mv-bank-name">{bank.name}</div>
                     <div className="mv-bank-pkg">{pkg.name}</div>
                   </div>
-                  <div className="mv-bank-cost">{fmtMoneyPlain(y1, currency)} kr</div>
+                  <div className="mv-bank-cost">
+                    {reason ? (
+                      <span className="not-possible">{t.notPossible ||'Ikke muligt'} <InfoTip text={reason} /></span>
+                    ) : `${fmtMoneyPlain(y1, currency)} kr`}
+                  </div>
                   <div className="mv-bank-chevron">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="6 9 12 15 18 9"/>
@@ -4702,16 +4759,28 @@ function App() {
                         {t.yr1Cost}
                       </div>
                     </td>
-                    {costs.map(c => (
-                      <td key={c.bank.id+c.pkg.name} className={isWinner(c) ?'winner-cell':''}
-                        style={{
-                          background: isWinner(c) ?'var(--accent)': undefined,
-                          color: isWinner(c) ?'#fff': undefined,
-                          fontWeight: isWinner(c) ? 700 : 600,
-                        }}>
-                        {fmtMoneyPlain(c.y1, currency)}
-                      </td>
-                    ))}
+                    {costs.map(c => {
+                      const reason = getDisqualifyReason(c.pkg, answers);
+                      if (reason) {
+                        return (
+                          <td key={c.bank.id+c.pkg.name} className="not-possible-cell">
+                            <span className="not-possible">
+                              {t.notPossible ||'Ikke muligt'} <InfoTip text={reason} />
+                            </span>
+                          </td>
+                        );
+                      }
+                      return (
+                        <td key={c.bank.id+c.pkg.name} className={isWinner(c) ?'winner-cell':''}
+                          style={{
+                            background: isWinner(c) ?'var(--accent)': undefined,
+                            color: isWinner(c) ?'#fff': undefined,
+                            fontWeight: isWinner(c) ? 700 : 600,
+                          }}>
+                          {fmtMoneyPlain(c.y1, currency)}
+                        </td>
+                      );
+                    })}
                   </tr>
                 </>);
               })()}
