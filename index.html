@@ -1303,6 +1303,119 @@
     /* Ads / updates feed cards */
     .ads-overview-card { min-width: 0; flex-basis: 100%; padding: 8px 12px; }
   }
+
+  /* ──────────── Mobile redesign (winner card + collapsed bank list) ──────────── */
+  .mobile-view { display: none; }
+  @media (max-width: 768px) {
+    /* Hide desktop comparison surfaces */
+    .compare-table, .cost-chart, .conclusion-bar { display: none !important; }
+    .controls { display: none; }
+    .table-area { padding: 0; overflow: visible; }
+    .main { padding: 0 12px; }
+
+    /* Mobile view */
+    .mobile-view { display: block; padding: 12px 0 24px; }
+    .mv-sliders {
+      background: var(--surface, #FFF); border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04); padding: 14px 16px;
+      margin-bottom: 16px; display: flex; flex-direction: column; gap: 12px;
+    }
+    .mv-slider-row { display: flex; flex-direction: column; gap: 6px; }
+    .mv-slider-head {
+      display: flex; justify-content: space-between; align-items: baseline;
+      font-size: 13px; color: var(--text, #3D3935); font-weight: 500;
+    }
+    .mv-slider-val { font-variant-numeric: tabular-nums; color: var(--accent, #D97757); font-weight: 600; font-size: 13px; }
+    .mv-slider-row input[type="range"] {
+      width: 100%; height: 4px; -webkit-appearance: none; appearance: none;
+      background: var(--rule, #E4DFD4); border-radius: 2px; outline: none;
+    }
+    .mv-slider-row input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%;
+      background: var(--accent, #D97757); cursor: pointer; border: 2px solid #FFF;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+    .mv-slider-row input[type="range"]::-moz-range-thumb {
+      width: 18px; height: 18px; border-radius: 50%;
+      background: var(--accent, #D97757); cursor: pointer; border: 2px solid #FFF;
+    }
+
+    /* Winner card */
+    .mv-winner {
+      background: var(--accent, #D97757); color: #FFF;
+      border-radius: 14px; padding: 18px 18px 16px; margin-bottom: 18px;
+      box-shadow: 0 4px 16px rgba(217,119,87,0.25);
+    }
+    .mv-winner-badge {
+      display: inline-block; background: rgba(255,255,255,0.2); color: #FFF;
+      font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 4px 10px; border-radius: 20px; margin-bottom: 12px;
+    }
+    .mv-winner-name { font-size: 20px; font-weight: 700; margin-bottom: 2px; letter-spacing: -0.01em; }
+    .mv-winner-pkg { font-size: 13px; opacity: 0.85; margin-bottom: 14px; }
+    .mv-winner-cost {
+      display: flex; align-items: baseline; gap: 6px;
+      padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.2);
+    }
+    .mv-winner-cost-amt { font-size: 28px; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+    .mv-winner-cost-label { font-size: 12px; opacity: 0.85; }
+    .mv-winner-actions { margin-top: 14px; }
+    .mv-winner-toggle {
+      width: 100%; background: rgba(255,255,255,0.15); color: #FFF; border: none;
+      padding: 10px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer;
+    }
+    .mv-winner-details { margin-top: 14px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.2); }
+    .mv-detail-row {
+      display: flex; justify-content: space-between; align-items: flex-start;
+      padding: 8px 0; gap: 12px; font-size: 13px;
+      border-bottom: 1px solid rgba(255,255,255,0.12);
+    }
+    .mv-detail-row:last-child { border-bottom: none; }
+    .mv-detail-label { opacity: 0.85; flex-shrink: 0; }
+    .mv-detail-value { text-align: right; font-weight: 500; }
+
+    /* Other banks list */
+    .mv-others-head {
+      font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--muted, #8B8580); margin: 8px 4px 8px;
+    }
+    .mv-bank-row {
+      background: var(--surface, #FFF); border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04); margin-bottom: 8px;
+      overflow: hidden;
+    }
+    .mv-bank-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 16px; cursor: pointer; gap: 12px;
+    }
+    .mv-bank-head-text { flex: 1; min-width: 0; }
+    .mv-bank-name { font-size: 15px; font-weight: 600; color: var(--text, #3D3935); }
+    .mv-bank-pkg { font-size: 12px; color: var(--muted, #8B8580); margin-top: 2px; }
+    .mv-bank-cost {
+      font-size: 14px; font-weight: 600; color: var(--text, #3D3935);
+      font-variant-numeric: tabular-nums; white-space: nowrap;
+    }
+    .mv-bank-chevron {
+      width: 20px; height: 20px; display: flex; align-items: center; justify-content: center;
+      color: var(--muted, #8B8580); transition: transform 0.2s;
+    }
+    .mv-bank-row.expanded .mv-bank-chevron { transform: rotate(180deg); }
+    .mv-bank-details {
+      padding: 4px 16px 14px;
+      background: rgba(0,0,0,0.015);
+      display: none;
+    }
+    .mv-bank-row.expanded .mv-bank-details { display: block; }
+    .mv-bank-group {
+      font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--muted, #8B8580); padding: 10px 0 4px;
+    }
+    .mv-bank-row .mv-detail-row {
+      color: var(--text, #3D3935);
+      border-bottom-color: var(--rule, #E4DFD4);
+    }
+    .mv-bank-row .mv-detail-label { color: var(--muted, #8B8580); }
+  }
 </style>
 </head>
 <body>
@@ -1960,6 +2073,7 @@ const EXTRA_DA = {
   wizardDone:'Vis mine matches', wizardBack:'Tilbage', wizardNext:'Næste', wizardSkip:'Spring over',
   wizardStep:'Trin', wizardOf:'af',
   viewSummary:'Oversigt', viewDetailed:'Detaljeret',
+  cheapest:'Billigste valg', otherBanks:'Andre banker', seeDetails:'Se detaljer', hideDetails:'Skjul detaljer',
   revenueNowQ:'Årlig omsætning (i år)', revenueNextQ:'Forventet omsætning næste år',
   fteQ:'Medarbejdere (FTE)', adbQ:'Gennemsnitlig saldo på kontoen',
   fxVolumeQ:'Månedlig FX-volumen', cashIntensiveQ:'Håndterer I kontanter?',
@@ -4029,6 +4143,142 @@ function isCellPulsing(pkg, rowId) {
   return !!getCellChange(pkg, rowId);
 }
 
+// ─── Mobile view (winner card + collapsed bank list) ─────────────────────────
+function MobileSliders({ answers, setAnswers, t }) {
+  const cfgs = [
+    { key: 'txMonth',      label: t.rowLabels?.domestic_included || 'Overførsler',         min: 0, max: 500, step: 10, unit: 'stk/md' },
+    { key: 'intlPerMonth', label: t.rowLabels?.intl_transfer    || 'Internationale ovf.', min: 0, max: 50,  step: 1,  unit: 'stk/md' },
+    { key: 'fxVolume',     label: t.rowLabels?.fx_fee           || 'Valutaveksling',       min: 0, max: 100, step: 5,  unit: 'k DKK/md' },
+  ];
+  return (
+    <div className="mv-sliders">
+      {cfgs.map(c => {
+        const v = valueForYear(answers[c.key], 1) ?? c.min;
+        return (
+          <div key={c.key} className="mv-slider-row">
+            <div className="mv-slider-head">
+              <span>{c.label}</span>
+              <span className="mv-slider-val">{v} {c.unit}</span>
+            </div>
+            <input type="range" min={c.min} max={c.max} step={c.step} value={v}
+              onChange={e => setAnswers(a => ({ ...a, [c.key]: +e.target.value }))} />
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function MobileBankDetails({ pkg, currency, sourceCurrency, lang, answers, t }) {
+  // Render each row group's rows for this single bank as label/value pairs
+  return (
+    <div>
+      {ROW_GROUPS.map(group => (
+        <div key={group.id}>
+          <div className="mv-bank-group">{t.groupLabels?.[group.id] || group.label}</div>
+          {group.rows.map(row => {
+            const val = pkg[row.id];
+            if (val == null || val === '') return null;
+            const cost = ROW_SLIDER_CONFIG[row.id] ? computeRowMonthlyCost(row.id, pkg, answers) : null;
+            return (
+              <div key={row.id} className="mv-detail-row">
+                <div className="mv-detail-label">{t.rowLabels?.[row.id] || row.label}</div>
+                <div className="mv-detail-value">
+                  <CellVal val={val} currency={currency} sourceCurrency={sourceCurrency} lang={lang} />
+                  {cost !== null && (
+                    <div style={{fontSize:11,opacity:0.75,marginTop:2}}>
+                      {cost === 0 ? '0 kr/md' : `~${cost} kr/md`}
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function MobileView({ columns, answers, setAnswers, t, currency, country, lang }) {
+  const [expanded, setExpanded] = React.useState({});
+  const [winnerOpen, setWinnerOpen] = React.useState(false);
+
+  // Rank by Year-1 total cost — cheapest first
+  const sortedCols = React.useMemo(() => {
+    return [...columns].sort((a, b) => {
+      const ay = parseKr(a.pkg.onboarding) + computeAnnualCost(a.pkg, answers, 1);
+      const by = parseKr(b.pkg.onboarding) + computeAnnualCost(b.pkg, answers, 1);
+      return ay - by;
+    });
+  }, [columns, answers]);
+
+  if (!sortedCols.length) return null;
+  const winner = sortedCols[0];
+  const rest = sortedCols.slice(1);
+  const winnerY1 = parseKr(winner.pkg.onboarding) + computeAnnualCost(winner.pkg, answers, 1);
+  const sourceCurrency = COUNTRY_TO_CURRENCY[country];
+
+  return (
+    <div className="mobile-view">
+      <MobileSliders answers={answers} setAnswers={setAnswers} t={t} />
+
+      {/* Winner card */}
+      <div className="mv-winner">
+        <div className="mv-winner-badge">{t.cheapest || 'Billigste valg'}</div>
+        <div className="mv-winner-name">{winner.bank.name}</div>
+        <div className="mv-winner-pkg">{winner.pkg.name}</div>
+        <div className="mv-winner-cost">
+          <span className="mv-winner-cost-amt">{fmtMoneyPlain(winnerY1, currency)} kr</span>
+          <span className="mv-winner-cost-label">/ år 1</span>
+        </div>
+        <div className="mv-winner-actions">
+          <button className="mv-winner-toggle" onClick={() => setWinnerOpen(o => !o)}>
+            {winnerOpen ? (t.hideDetails || 'Skjul detaljer') : (t.seeDetails || 'Se detaljer')}
+          </button>
+        </div>
+        {winnerOpen && (
+          <div className="mv-winner-details">
+            <MobileBankDetails pkg={winner.pkg} currency={currency} sourceCurrency={sourceCurrency} lang={lang} answers={answers} t={t} />
+          </div>
+        )}
+      </div>
+
+      {/* Other banks */}
+      {rest.length > 0 && (
+        <>
+          <div className="mv-others-head">{t.otherBanks || 'Andre banker'}</div>
+          {rest.map(({ bank, pkg }) => {
+            const y1 = parseKr(pkg.onboarding) + computeAnnualCost(pkg, answers, 1);
+            const isOpen = !!expanded[bank.id + pkg.name];
+            return (
+              <div key={bank.id + pkg.name} className={`mv-bank-row ${isOpen ? 'expanded' : ''}`}>
+                <div className="mv-bank-head" onClick={() => setExpanded(e => ({ ...e, [bank.id + pkg.name]: !isOpen }))}>
+                  <div className="mv-bank-head-text">
+                    <div className="mv-bank-name">{bank.name}</div>
+                    <div className="mv-bank-pkg">{pkg.name}</div>
+                  </div>
+                  <div className="mv-bank-cost">{fmtMoneyPlain(y1, currency)} kr</div>
+                  <div className="mv-bank-chevron">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="6 9 12 15 18 9"/>
+                    </svg>
+                  </div>
+                </div>
+                {isOpen && (
+                  <div className="mv-bank-details">
+                    <MobileBankDetails pkg={pkg} currency={currency} sourceCurrency={sourceCurrency} lang={lang} answers={answers} t={t} />
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </>
+      )}
+    </div>
+  );
+}
+
 function App() {
   const [country, setCountry] = useState(() => {
     try { return localStorage.getItem('bp-country') || TWEAK_DEFAULTS.defaultCountry ||'DK'; } catch { return TWEAK_DEFAULTS.defaultCountry ||'DK'; }
@@ -4269,6 +4519,9 @@ function App() {
       {/* MAIN */}
       <div className="main">
         <div className="table-area">
+          {!comingCountry && (
+            <MobileView columns={columns} answers={answers} setAnswers={setAnswers} t={t} currency={currency} country={country} lang={lang} />
+          )}
           {!comingCountry && <ConclusionBar top={topResult} results={results} answers={answers} t={t} currency={currency} lang={lang} />}
           {comingCountry ? (
             <div className="placeholder-msg">
