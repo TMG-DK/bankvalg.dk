@@ -580,21 +580,41 @@
     min-width: var(--label-w);
   }
   .row-label-text { display: flex; align-items: center; gap: 6px; }
-  .must-have-toggle {
+  .req-toggle {
     margin-top: 6px;
-    background: transparent;
-    color: var(--muted);
-    border: 1px solid var(--rule);
-    padding: 3px 9px; border-radius: 12px;
-    font-size: 11px; font-weight: 500; cursor: pointer;
-    transition: all 0.15s;
+    position: relative;
+    display: inline-grid;
+    grid-template-columns: 1fr 1fr;
+    background: var(--rule);
+    border-radius: 14px;
+    padding: 2px;
+    cursor: pointer;
+    user-select: none;
     align-self: flex-start;
+    min-width: 180px;
+    transition: background 0.18s;
   }
-  .must-have-toggle:hover { color: var(--text); border-color: var(--muted); }
-  .must-have-toggle.active {
-    background: var(--accent); color: #FFF; border-color: var(--accent);
+  .req-toggle-opt {
+    position: relative; z-index: 1;
+    text-align: center;
+    padding: 4px 10px;
+    font-size: 11px; font-weight: 500;
+    color: var(--muted);
+    transition: color 0.18s;
+    white-space: nowrap;
   }
-  .must-have-toggle.active:hover { background: var(--accent); opacity: 0.9; }
+  .req-toggle-thumb {
+    position: absolute; top: 2px; left: 2px; bottom: 2px;
+    width: calc(50% - 2px);
+    background: #FFF;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), background 0.18s;
+  }
+  .req-toggle.on { background: var(--accent); }
+  .req-toggle.on .req-toggle-thumb { transform: translateX(100%); background: #FFF; }
+  .req-toggle.off .req-toggle-opt:first-child { color: var(--text); font-weight: 600; }
+  .req-toggle.on  .req-toggle-opt:last-child  { color: var(--accent); font-weight: 600; }
   .inline-slider-wrap {
     display: flex; align-items: center; gap: 6px;
     margin-top: 5px; padding-right: 4px;
@@ -1359,13 +1379,10 @@
       width: 18px; height: 18px; border-radius: 50%;
       background: var(--accent, #D97757); cursor: pointer; border: 2px solid #FFF;
     }
-    .mv-must-haves { padding-top: 4px; border-top: 1px solid var(--rule, #E4DFD4); }
-    .mv-must-haves-label {
-      font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
-      color: var(--muted, #8B8580); margin-bottom: 8px;
-    }
-    .mv-must-haves-row { display: flex; flex-wrap: wrap; gap: 6px; }
-    .mv-must-haves-row .must-have-toggle { margin-top: 0; font-size: 12px; padding: 5px 12px; }
+    .mv-requires { padding-top: 8px; margin-top: 4px; border-top: 1px solid var(--rule, #E4DFD4); display: flex; flex-direction: column; gap: 10px; }
+    .mv-require-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .mv-require-label { font-size: 13px; color: var(--text, #3D3935); font-weight: 500; }
+    .mv-require-row .req-toggle { margin-top: 0; min-width: 0; flex: 0 0 auto; }
 
     /* Winner card */
     .mv-winner {
@@ -2101,7 +2118,7 @@ const EXTRA_DA = {
   wizardStep:'Trin', wizardOf:'af',
   viewSummary:'Oversigt', viewDetailed:'Detaljeret',
   cheapest:'Billigste valg', otherBanks:'Andre banker', seeDetails:'Se detaljer', hideDetails:'Skjul detaljer',
-  mustHaveSection:'Must have', mustHaveLabel:'Must have', mustHaveLabelOn:'Krav', mustHaveOn:'Klik for at slå krav fra', mustHaveOff:'Klik for at gøre dette til et krav',
+  reqOff:'Ikke nødvendigt', reqOn:'Påkrævet',
   revenueNowQ:'Årlig omsætning (i år)', revenueNextQ:'Forventet omsætning næste år',
   fteQ:'Medarbejdere (FTE)', adbQ:'Gennemsnitlig saldo på kontoen',
   fxVolumeQ:'Månedlig FX-volumen', cashIntensiveQ:'Håndterer I kontanter?',
@@ -2394,24 +2411,27 @@ function InlineSlider({ rowId, answers, setAnswers }) {
   );
 }
 
-// Must-have toggle: for boolean "require this feature" rows like overdraft/business_loan.
-// When active, packages without the feature get pushed to the bottom of the ranking.
+// Require toggle: segmented two-state control for "is this feature required?".
+// Default = "Ikke nødvendigt" (off). When toggled to "Påkrævet", non-qualifying
+// packages are pushed to the bottom so the winner must satisfy the requirement.
 const MUST_HAVE_ROWS = {
   overdraft:     { answerKey: 'needsOverdraft' },
   business_loan: { answerKey: 'needsLoan' },
 };
-function MustHaveToggle({ rowId, answers, setAnswers, t }) {
+function RequireToggle({ rowId, answers, setAnswers, t }) {
   const cfg = MUST_HAVE_ROWS[rowId];
   if (!cfg) return null;
   const active = !!answers[cfg.answerKey];
+  const offLabel = t.reqOff ||'Ikke nødvendigt';
+  const onLabel  = t.reqOn  ||'Påkrævet';
   return (
-    <button
-      type="button"
-      className={`must-have-toggle ${active ?'active':''}`}
-      onClick={() => setAnswers(a => ({ ...a, [cfg.answerKey]: !active }))}
-      title={active ? (t.mustHaveOn ||'Klik for at slå krav fra') : (t.mustHaveOff ||'Klik for at gøre dette til et krav')}>
-      {active ? (t.mustHaveLabelOn ||'✓ Krav') : (t.mustHaveLabel ||'Must have')}
-    </button>
+    <div className={`req-toggle ${active ?'on':'off'}`}
+         role="switch" aria-checked={active}
+         onClick={() => setAnswers(a => ({ ...a, [cfg.answerKey]: !active }))}>
+      <span className="req-toggle-opt">{offLabel}</span>
+      <span className="req-toggle-opt">{onLabel}</span>
+      <span className="req-toggle-thumb" />
+    </div>
   );
 }
 
@@ -4218,8 +4238,8 @@ function MobileSliders({ answers, setAnswers, t }) {
     { key: 'physCardsNeeded', label: t.rowLabels?.physical_card_extra  || 'Fysiske kort',         min: 1, max: 20,  step: 1,  unit: 'kort' },
   ];
   const mustHaves = [
-    { key: 'needsOverdraft', label: t.rowLabels?.overdraft     || 'Kassekredit' },
-    { key: 'needsLoan',      label: t.rowLabels?.business_loan || 'Erhvervslån' },
+    { rowId: 'overdraft',     label: t.rowLabels?.overdraft     || 'Kassekredit' },
+    { rowId: 'business_loan', label: t.rowLabels?.business_loan || 'Erhvervslån' },
   ];
   return (
     <div className="mv-sliders">
@@ -4236,20 +4256,13 @@ function MobileSliders({ answers, setAnswers, t }) {
           </div>
         );
       })}
-      <div className="mv-must-haves">
-        <div className="mv-must-haves-label">{t.mustHaveSection ||'Must have'}</div>
-        <div className="mv-must-haves-row">
-          {mustHaves.map(m => {
-            const active = !!answers[m.key];
-            return (
-              <button key={m.key} type="button"
-                className={`must-have-toggle ${active ?'active':''}`}
-                onClick={() => setAnswers(a => ({ ...a, [m.key]: !active }))}>
-                {m.label}
-              </button>
-            );
-          })}
-        </div>
+      <div className="mv-requires">
+        {mustHaves.map(m => (
+          <div key={m.rowId} className="mv-require-row">
+            <div className="mv-require-label">{m.label}</div>
+            <RequireToggle rowId={m.rowId} answers={answers} setAnswers={setAnswers} t={t} />
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -4717,7 +4730,7 @@ function App() {
                           {row.tooltip && <Tip text={(t.rowTooltips && t.rowTooltips[row.id]) || row.tooltip} />}
                         </div>
                         <InlineSlider rowId={row.id} answers={answers} setAnswers={setAnswers} />
-                        <MustHaveToggle rowId={row.id} answers={answers} setAnswers={setAnswers} t={t} />
+                        <RequireToggle rowId={row.id} answers={answers} setAnswers={setAnswers} t={t} />
                       </td>
                       {columns.map(({bank, pkg}) => {
                         const val = pkg[row.id];
