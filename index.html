@@ -26,8 +26,8 @@
     --cross: #C0492B;
     --row-alt: #F5F3EC;
     --cat-bg: #EFEBDD;
-    --col-w: 100px;
-    --label-w: 200px;
+    --col-w: 140px;
+    --label-w: 240px;
     --cat-w: 56px;
     --cat-divider: color-mix(in srgb, var(--accent) 45%, var(--border-strong));
     --thbank-h: 100px;
@@ -432,7 +432,9 @@
   /* TABLE */
   .compare-table {
     border-collapse: separate; border-spacing: 0;
+    width: 100%;
     min-width: max-content;
+    table-layout: auto;
   }
   .compare-table thead {
     position: sticky; top: 0; z-index: 55;
@@ -521,7 +523,8 @@
   .th-label-pkg {
     position: sticky; top: var(--thbank-h); left: 0; z-index: 69;
     background: var(--surface); padding: 8px 16px 10px;
-    font-size: 12px; font-weight: 500; color: var(--text);
+    font-size: 12px; font-weight: 500; color: var(--muted);
+    text-align: right;
     border-right: 2px solid var(--border-strong);
     border-bottom: 2px solid var(--border);
   }
@@ -4718,7 +4721,7 @@ function App() {
             <thead>
               {/* Row 1: Bank names */}
               <tr>
-                <td className="th-label th-label-top" colSpan={2}>{t.pricingStruct}</td>
+                <td className="th-label th-label-top" colSpan={2}></td>
                 {visibleBanks.map(bank => (
                   <th key={bank.id} colSpan={visiblePkgCountFor(bank)} className="th-bank" data-bank-col={bank.id}>
                     <div className="th-bank-inner" style={{borderTopColor: bank.color}}>
