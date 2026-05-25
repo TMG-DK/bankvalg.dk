@@ -177,6 +177,11 @@
 
     // Support
     if (row.support_type) pkg.support = row.support_type;
+
+    // Credit options (overdraft, business loan, pricing summary)
+    if (row.overdraft != null)       pkg.overdraft = row.overdraft;
+    if (row.business_loan != null)   pkg.business_loan = row.business_loan;
+    if (row.credit_pricing != null)  pkg.credit_pricing = row.credit_pricing;
   }
 
   // ── Fetch & patch ─────────────────────────────────────────────────────────
