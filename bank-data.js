@@ -17,6 +17,7 @@ const ROW_GROUPS = [
   { id: 'fees', label: 'Gebyrer', rows: [
     { id: 'onboarding', label: 'Oprettelsesgebyr', tooltip: 'Engangsgebyr ved oprettelse af erhvervskonto' },
     { id: 'monthly', label: 'Månedlig pris', tooltip: 'Fast månedlig abonnementspris ekskl. moms' },
+    { id: 'extra_account_fee', label: 'Konti', tooltip: 'Antal erhvervskonti inkluderet i pakken — den første er altid inkluderet i abonnementet. Pris pr. ekstra konto vises hvor det er offentligt.' },
   ]},
   { id: 'transfers', label: 'Overførsler', rows: [
     { id: 'domestic_included', label: 'Overførsler', tooltip: 'Pris per indenlandsk overførsel. Nogle pakker inkluderer et antal gratis overførsler pr. måned, derefter betales pr. stk.' },
@@ -56,6 +57,7 @@ const BANKS_DK = [
         netbank: 'Basisnetbank', payroll: 'Via Zenegy', api: 'Ja (District)', physical_branch: 'Ja',
         support: 'Telefon, online, chat, e-mail',
                 killer_features: [{"label":"Realkredit Danmark","tone":"green"},{"label":"Landsdækkende filialer","tone":"neutral"},{"label":"The Hub for startups","tone":"blue"}],
+        extra_account_fee: '1 inkl.',
         overdraft: 'Ja', business_loan: 'Ja', credit_pricing: 'Renter individuelt fastsat (markeds-gns. 3,9% okt 2026). Kassekredit typisk 5-15% p.a.',
         _monthly: 139, _transfer: 0, _intl: 50, _hasApi: true, _hasBranch: true, _hasMobilePay: true },
       { name: 'Danske Business Plus',
@@ -65,6 +67,7 @@ const BANKS_DK = [
         netbank: 'District netbank', payroll: 'Via Zenegy', api: 'Ja (District)', physical_branch: 'Ja',
         support: 'Telefon, online, chat, e-mail, filial',
                 killer_features: [{"label":"5 erhvervskonti inkl.","tone":"blue"},{"label":"Multi-currency","tone":"blue"},{"label":"District Pro","tone":"neutral"}],
+        extra_account_fee: '5 inkl. · ekstra 15 kr/md',
         overdraft: 'Ja', business_loan: 'Ja', credit_pricing: 'Renter individuelt fastsat (markeds-gns. 3,9% okt 2026). Kassekredit typisk 5-15% p.a.',
         _monthly: 259, _transfer: 1, _intl: 50, _hasApi: true, _hasBranch: true, _hasMobilePay: true },
       { name: 'Danske Business Pro',
@@ -74,6 +77,7 @@ const BANKS_DK = [
         netbank: 'District netbank', payroll: 'Via Zenegy', api: 'Ja (District)', physical_branch: 'Ja',
         support: 'Dedikeret rådgiver',
                 killer_features: [{"label":"Dedikeret rådgiver","tone":"gold"},{"label":"Frit antal konti","tone":"blue"},{"label":"Mastercard Gold","tone":"gold"},{"label":"Trade finance","tone":"neutral"}],
+        extra_account_fee: 'Ubegrænset inkl.',
         overdraft: 'Ja', business_loan: 'Ja', credit_pricing: 'Renter individuelt fastsat (markeds-gns. 3,9% okt 2026). Kassekredit typisk 5-15% p.a.',
         _monthly: 299, _transfer: 1, _intl: 50, _hasApi: true, _hasBranch: true, _hasMobilePay: true },
     ]
@@ -88,6 +92,7 @@ const BANKS_DK = [
         netbank: 'Nordea Business', payroll: 'Via partner', api: 'Ja (Nordea API Market)', physical_branch: 'Ja',
         support: 'Telefon, chat, filial (08:30–17)',
                 killer_features: [{"label":"Best SME Platform 2025","tone":"gold"},{"label":"Nordisk netværk","tone":"neutral"},{"label":"Bundle 75 kr/md","tone":"green"},{"label":"0 kr oprettelse","tone":"green"}],
+        extra_account_fee: '1 inkl. · ekstra 50 kr/md',
         overdraft: 'Ja', business_loan: 'Ja', credit_pricing: 'Renter individuelt fastsat (markeds-gns. 3,9% okt 2026). Kassekredit typisk 5-15% p.a.',
         _monthly: 245, _transfer: 1.25, _intl: 60, _hasApi: true, _hasBranch: true, _hasMobilePay: true },
     ]
@@ -102,6 +107,7 @@ const BANKS_DK = [
         netbank: 'Revolut Business', payroll: '—', api: 'Nej', physical_branch: 'Nej',
         support: 'Chat 24/7',
                 killer_features: [{"label":"35+ valutaer","tone":"blue"},{"label":"~10 min onboarding","tone":"green"},{"label":"Interbank FX","tone":"blue"},{"label":"24/7 support","tone":"neutral"}],
+        extra_account_fee: 'Ubegrænset inkl.',
         overdraft: 'Nej', business_loan: 'Nej', credit_pricing: '—',
         _monthly: 85, _transfer: 20, _intl: 20, _hasApi: false, _hasBranch: false, _hasMobilePay: false },
       { name: 'Grow',
@@ -111,6 +117,7 @@ const BANKS_DK = [
         netbank: 'Revolut Business', payroll: '—', api: 'Ja', physical_branch: 'Nej',
         support: 'Chat 24/7',
                 killer_features: [{"label":"100 gratis indl. overf.","tone":"blue"},{"label":"5 gratis internationale","tone":"blue"},{"label":"1 Metal-kort","tone":"gold"},{"label":"Bulk payments","tone":"neutral"},{"label":"Flexible Cash Funds","tone":"green"}],
+        extra_account_fee: 'Ubegrænset inkl.',
         overdraft: 'Nej', business_loan: 'Nej', credit_pricing: '—',
         _monthly: 260, _transfer: 20, _intl: 20, _hasApi: true, _hasBranch: false, _hasMobilePay: false },
       { name: 'Scale',
@@ -120,6 +127,7 @@ const BANKS_DK = [
         netbank: 'Revolut Business', payroll: '—', api: 'Ja', physical_branch: 'Nej',
         support: 'Prioritet chat 24/7',
                 killer_features: [{"label":"1.000 gratis indl. overf.","tone":"blue"},{"label":"25 gratis internationale","tone":"blue"},{"label":"2 Metal-kort","tone":"gold"},{"label":"Kort-personalisering","tone":"neutral"},{"label":"Højere FX-allowance","tone":"green"}],
+        extra_account_fee: 'Ubegrænset inkl.',
         overdraft: 'Nej', business_loan: 'Nej', credit_pricing: '—',
         _monthly: 770, _transfer: 20, _intl: 20, _hasApi: true, _hasBranch: false, _hasMobilePay: false },
     ]
@@ -134,6 +142,7 @@ const BANKS_DK = [
         netbank: 'Lunar app', payroll: '—', api: 'Nej', physical_branch: 'Nej',
         support: 'Chat, telefon, e-mail',
                 killer_features: [{"label":"Dansk banklicens","tone":"green"},{"label":"100% digital","tone":"blue"},{"label":"Gratis CVR-oprettelse","tone":"green"},{"label":"Erhvervslån via Froda/Qred","tone":"neutral"}],
+        extra_account_fee: '1 inkl. · ekstra 19 kr/md',
         overdraft: 'Nej', business_loan: 'Via Froda/Qred', credit_pricing: 'Op til 3 mio. kr. via Froda · op til 500.000 kr. via Qred. Fast rente, kreditvurdering.',
         _monthly: 241, _transfer: 3, _intl: 50, _hasApi: false, _hasBranch: false, _hasMobilePay: true },
       { name: 'Lunar Business Essential',
@@ -143,6 +152,7 @@ const BANKS_DK = [
         netbank: 'Lunar app', payroll: '—', api: 'Ja (Dinero/Billy/e-conomic)', physical_branch: 'Nej',
         support: 'Chat, telefon, e-mail',
                 killer_features: [{"label":"3 konti + 3 kort","tone":"blue"},{"label":"Auto-bogføring","tone":"blue"},{"label":"Rejse + cyber-forsikring","tone":"green"},{"label":"Bulk-overførsler","tone":"neutral"}],
+        extra_account_fee: '3 inkl. · ekstra 19 kr/md',
         overdraft: 'Nej', business_loan: 'Via Froda/Qred', credit_pricing: 'Op til 3 mio. kr. via Froda · op til 500.000 kr. via Qred. Fast rente, kreditvurdering.',
         _monthly: 366, _transfer: 3, _intl: 25, _hasApi: true, _hasBranch: false, _hasMobilePay: true,
         _changes: { api: { date: '2026-04-27', updateId: 14 } } }, // demo seed (Essential — detailed view); routine will overwrite
@@ -153,6 +163,7 @@ const BANKS_DK = [
         netbank: 'Lunar app', payroll: '—', api: 'Ja (Dinero/Billy/e-conomic)', physical_branch: 'Nej',
         support: 'Chat, telefon, e-mail (7 dage/uge)',
                 killer_features: [{"label":"+0,75% rente op til 5M kr","tone":"green"},{"label":"Wolt+ inkl.","tone":"green"},{"label":"Ubegr. konti/kort/overf.","tone":"blue"},{"label":"Rejse + cyber-forsikring","tone":"neutral"},{"label":"Gratis SWIFT","tone":"green"}],
+        extra_account_fee: 'Ubegrænset inkl.',
         overdraft: 'Nej', business_loan: 'Via Froda/Qred', credit_pricing: 'Op til 3 mio. kr. via Froda · op til 500.000 kr. via Qred. Fast rente, kreditvurdering.',
         _monthly: 491, _transfer: 0, _intl: 0, _hasApi: true, _hasBranch: false, _hasMobilePay: true,
         _changes: { monthly: { date: '2026-04-29', updateId: 13 } } }, // demo seed (Limitless — visible in summary); routine will overwrite
@@ -168,6 +179,7 @@ const BANKS_DK = [
         netbank: 'MitNykredit', payroll: 'Via Bank Connect', api: 'Ja (Bank Connect)', physical_branch: 'Ja',
         support: 'Telefon, chat, lokalbank',
                 killer_features: [{"label":"ErhvervsKroner program","tone":"green"},{"label":"Realkredit-rabat","tone":"green"},{"label":"Netbankforsikring","tone":"neutral"},{"label":"150+ lokalbanker","tone":"neutral"}],
+        extra_account_fee: '1 inkl.',
         overdraft: 'Ja', business_loan: 'Ja', credit_pricing: 'Realkredit-bidrag fra ~1,5% p.a. · ErhvervsKroner-rabat 1.500 kr/lånt mio. kr/år (til 2027).',
         _monthly: 135, _transfer: 2, _intl: 50, _hasApi: true, _hasBranch: true, _hasMobilePay: true },
       { name: 'Nykredit Plus',
@@ -177,6 +189,7 @@ const BANKS_DK = [
         netbank: 'MitNykredit', payroll: 'Bank Connect', api: 'Ja (Bank Connect)', physical_branch: 'Ja',
         support: 'Telefon, chat, lokalbank',
                 killer_features: [{"label":"Holding-tilvalg gratis","tone":"green"},{"label":"FI-kreditor inkl.","tone":"neutral"},{"label":"BoligBank-bundle","tone":"green"},{"label":"Realkredit-rabat","tone":"green"}],
+        extra_account_fee: '3 inkl.',
         overdraft: 'Ja', business_loan: 'Ja', credit_pricing: 'Realkredit-bidrag fra ~1,5% p.a. · ErhvervsKroner-rabat 1.500 kr/lånt mio. kr/år (til 2027).',
         _monthly: 225, _transfer: 1.25, _intl: 50, _hasApi: true, _hasBranch: true, _hasMobilePay: true },
       { name: 'Nykredit Total',
@@ -186,6 +199,7 @@ const BANKS_DK = [
         netbank: 'MitNykredit', payroll: 'Bank Connect inkl.', api: 'Ja (Bank Connect inkl.)', physical_branch: 'Ja',
         support: 'Dedikeret rådgiver, lokalbank',
                 killer_features: [{"label":"10 konti/kort/brugere","tone":"blue"},{"label":"Bank Connect inkl.","tone":"green"},{"label":"Årlig revisorforespørgsel","tone":"neutral"},{"label":"Holding gratis","tone":"green"},{"label":"Pensions/forsikrings-tjek","tone":"neutral"}],
+        extra_account_fee: 'Ubegrænset inkl.',
         overdraft: 'Ja', business_loan: 'Ja', credit_pricing: 'Realkredit-bidrag fra ~1,5% p.a. · ErhvervsKroner-rabat 1.500 kr/lånt mio. kr/år (til 2027).',
         _monthly: 385, _transfer: 1, _intl: 50, _hasApi: true, _hasBranch: true, _hasMobilePay: true },
     ]

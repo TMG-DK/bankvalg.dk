@@ -182,6 +182,9 @@
     if (row.overdraft != null)       pkg.overdraft = row.overdraft;
     if (row.business_loan != null)   pkg.business_loan = row.business_loan;
     if (row.credit_pricing != null)  pkg.credit_pricing = row.credit_pricing;
+
+    // Extra account fee (number of accounts included + cost per additional)
+    if (row.extra_account_fee != null) pkg.extra_account_fee = row.extra_account_fee;
   }
 
   // ── Fetch & patch ─────────────────────────────────────────────────────────
