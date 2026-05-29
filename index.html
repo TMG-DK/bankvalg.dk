@@ -4710,7 +4710,7 @@ function App() {
           {!comingCountry && (
             <MobileView columns={columns} answers={answers} setAnswers={setAnswers} t={t} currency={currency} country={country} lang={lang} />
           )}
-          {!comingCountry && <ConclusionBar top={topResult} results={results} answers={answers} t={t} currency={currency} lang={lang} />}
+          {/* ConclusionBar (summary over best choice) — hidden per user request */}
           {comingCountry ? (
             <div className="placeholder-msg">
               <div style={{fontWeight:600,fontSize:15,marginBottom:6}}>
