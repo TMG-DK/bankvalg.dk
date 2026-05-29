@@ -1493,6 +1493,11 @@
       font-size: 12px; opacity: 0.9; font-style: italic;
       margin-top: 8px; line-height: 1.45;
     }
+    .mv-desktop-hint {
+      font-size: 11px; color: var(--muted, #8B8580);
+      text-align: center; padding: 4px 0 10px;
+      font-style: italic;
+    }
   }
 </style>
 </head>
@@ -2153,6 +2158,7 @@ const EXTRA_DA = {
   viewSummary:'Oversigt', viewDetailed:'Detaljeret',
   cheapest:'Billigste valg', otherBanks:'Andre banker', seeDetails:'Se detaljer', hideDetails:'Skjul detaljer',
   reqOff:'Ikke nødvendigt', reqOn:'Påkrævet', notPossible:'Ikke muligt',
+  mobileDesktopHint:'For bedre overblik, brug computer',
   revenueNowQ:'Årlig omsætning (i år)', revenueNextQ:'Forventet omsætning næste år',
   fteQ:'Medarbejdere (FTE)', adbQ:'Gennemsnitlig saldo på kontoen',
   fxVolumeQ:'Månedlig FX-volumen', cashIntensiveQ:'Håndterer I kontanter?',
@@ -4398,6 +4404,7 @@ function MobileView({ columns, answers, setAnswers, t, currency, country, lang }
 
   return (
     <div className="mobile-view">
+      <div className="mv-desktop-hint">{t.mobileDesktopHint ||'For bedre overblik, brug computer'}</div>
       <MobileSliders answers={answers} setAnswers={setAnswers} t={t} />
 
       {/* Winner card */}
