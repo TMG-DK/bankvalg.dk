@@ -1498,6 +1498,46 @@
       text-align: center; padding: 4px 0 10px;
       font-style: italic;
     }
+
+    /* Mobile tooltip (?) — tap to show popup */
+    .mtip-wrap { position: relative; display: inline-flex; vertical-align: middle; margin-left: 4px; }
+    .mtip-btn {
+      width: 16px; height: 16px; border-radius: 50%;
+      background: var(--muted, #8B8580); color: #FFF;
+      border: none; padding: 0;
+      font-size: 11px; font-weight: 700; line-height: 16px;
+      cursor: pointer; flex-shrink: 0;
+      font-family: Georgia, serif;
+    }
+    .mtip-btn:active { transform: scale(0.95); }
+    .mtip-box {
+      position: absolute; top: calc(100% + 6px); left: 0;
+      z-index: 100;
+      background: #3D3935; color: #FFF;
+      padding: 10px 12px; border-radius: 8px;
+      font-size: 12px; font-weight: 400; line-height: 1.4;
+      width: max-content; max-width: 260px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+      pointer-events: none;
+      animation: mtip-pop 0.15s ease-out;
+    }
+    .mtip-box::before {
+      content: ''; position: absolute; top: -4px; left: 6px;
+      width: 8px; height: 8px; background: #3D3935;
+      transform: rotate(45deg);
+    }
+    @keyframes mtip-pop {
+      from { opacity: 0; transform: translateY(-4px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Winner card flash when a new bank becomes the winner */
+    @keyframes mv-winner-flash {
+      0%   { box-shadow: 0 4px 16px rgba(217,119,87,0.25), 0 0 0 0 rgba(255,255,255,0.0); transform: scale(1); }
+      30%  { box-shadow: 0 8px 28px rgba(217,119,87,0.55), 0 0 0 4px rgba(255,255,255,0.35); transform: scale(1.012); }
+      100% { box-shadow: 0 4px 16px rgba(217,119,87,0.25), 0 0 0 0 rgba(255,255,255,0.0); transform: scale(1); }
+    }
+    .mv-winner[data-flash="on"] { animation: mv-winner-flash 1.2s cubic-bezier(0.4, 0, 0.2, 1); }
   }
 </style>
 </head>
@@ -4311,13 +4351,44 @@ function isCellPulsing(pkg, rowId) {
 }
 
 // ─── Mobile view (winner card + collapsed bank list) ─────────────────────────
+// Tap-friendly tooltip for mobile: shows a popup on click, closes on outside click.
+function MobileTip({ text }) {
+  const [open, setOpen] = React.useState(false);
+  const ref = React.useRef(null);
+  React.useEffect(() => {
+    if (!open) return;
+    const close = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('click', close);
+    return () => document.removeEventListener('click', close);
+  }, [open]);
+  if (!text) return null;
+  return (
+    <span className="mtip-wrap" ref={ref}>
+      <button type="button" className="mtip-btn"
+        onClick={(e) => { e.stopPropagation(); setOpen(o => !o); }}
+        aria-label="Mere info">?</button>
+      {open && <span className="mtip-box">{text}</span>}
+    </span>
+  );
+}
+
+// Lookup helper: get tooltip text for a given rowId (Danish override else ROW_GROUPS fallback)
+function tipForRow(rowId, t) {
+  if (t?.rowTooltips?.[rowId]) return t.rowTooltips[rowId];
+  for (const g of ROW_GROUPS) {
+    const r = g.rows.find(x => x.id === rowId);
+    if (r && r.tooltip) return r.tooltip;
+  }
+  return null;
+}
+
 function MobileSliders({ answers, setAnswers, t }) {
   const cfgs = [
-    { key: 'accountsNeeded',  label: t.rowLabels?.extra_account_fee    || 'Antal konti',          min: 1, max: 5,   step: 1,  unit: 'konti' },
-    { key: 'txMonth',         label: t.rowLabels?.domestic_included    || 'Overførsler',         min: 0, max: 250, step: 10, unit: 'stk/md' },
-    { key: 'intlPerMonth',    label: t.rowLabels?.intl_transfer        || 'Internationale ovf.', min: 0, max: 50,  step: 1,  unit: 'stk/md' },
-    { key: 'fxVolume',        label: t.rowLabels?.fx_fee               || 'Valutaveksling',       min: 0, max: 100, step: 5,  unit: 'k DKK/md' },
-    { key: 'physCardsNeeded', label: t.rowLabels?.physical_card_extra  || 'Fysiske kort',         min: 1, max: 20,  step: 1,  unit: 'kort' },
+    { key: 'accountsNeeded',  rowId: 'extra_account_fee',   label: t.rowLabels?.extra_account_fee    || 'Antal konti',          min: 1, max: 5,   step: 1,  unit: 'konti' },
+    { key: 'txMonth',         rowId: 'domestic_included',   label: t.rowLabels?.domestic_included    || 'Overførsler',         min: 0, max: 250, step: 10, unit: 'stk/md' },
+    { key: 'intlPerMonth',    rowId: 'intl_transfer',       label: t.rowLabels?.intl_transfer        || 'Internationale ovf.', min: 0, max: 50,  step: 1,  unit: 'stk/md' },
+    { key: 'fxVolume',        rowId: 'fx_fee',              label: t.rowLabels?.fx_fee               || 'Valutaveksling',       min: 0, max: 100, step: 5,  unit: 'k DKK/md' },
+    { key: 'physCardsNeeded', rowId: 'physical_card_extra', label: t.rowLabels?.physical_card_extra  || 'Fysiske kort',         min: 1, max: 20,  step: 1,  unit: 'kort' },
   ];
   const mustHaves = [
     { rowId: 'overdraft',     label: t.rowLabels?.overdraft     || 'Kassekredit' },
@@ -4330,7 +4401,7 @@ function MobileSliders({ answers, setAnswers, t }) {
         return (
           <div key={c.key} className="mv-slider-row">
             <div className="mv-slider-head">
-              <span>{c.label}</span>
+              <span>{c.label} <MobileTip text={tipForRow(c.rowId, t)} /></span>
               <span className="mv-slider-val">{v} {c.unit}</span>
             </div>
             <input type="range" min={c.min} max={c.max} step={c.step} value={v}
@@ -4341,7 +4412,7 @@ function MobileSliders({ answers, setAnswers, t }) {
       <div className="mv-requires">
         {mustHaves.map(m => (
           <div key={m.rowId} className="mv-require-row">
-            <div className="mv-require-label">{m.label}</div>
+            <div className="mv-require-label">{m.label} <MobileTip text={tipForRow(m.rowId, t)} /></div>
             <RequireToggle rowId={m.rowId} answers={answers} setAnswers={setAnswers} t={t} />
           </div>
         ))}
@@ -4363,7 +4434,7 @@ function MobileBankDetails({ pkg, currency, sourceCurrency, lang, answers, t }) 
             const cost = ROW_SLIDER_CONFIG[row.id] ? computeRowMonthlyCost(row.id, pkg, answers) : null;
             return (
               <div key={row.id} className="mv-detail-row">
-                <div className="mv-detail-label">{t.rowLabels?.[row.id] || row.label}</div>
+                <div className="mv-detail-label">{t.rowLabels?.[row.id] || row.label} <MobileTip text={tipForRow(row.id, t)} /></div>
                 <div className="mv-detail-value">
                   <CellVal val={val} currency={currency} sourceCurrency={sourceCurrency} lang={lang} />
                   {cost !== null && (
@@ -4402,13 +4473,25 @@ function MobileView({ columns, answers, setAnswers, t, currency, country, lang }
   const winnerY1 = parseKr(winner.pkg.onboarding) + computeAnnualCost(winner.pkg, answers, 1);
   const sourceCurrency = COUNTRY_TO_CURRENCY[country];
 
+  // Flash the winner card briefly when the winning bank changes.
+  // Track previous winner key in a ref; bump a flashId state to retrigger the animation.
+  const winnerKey = winner.bank.id + '|' + winner.pkg.name;
+  const prevWinnerRef = React.useRef(winnerKey);
+  const [flashId, setFlashId] = React.useState(0);
+  React.useEffect(() => {
+    if (prevWinnerRef.current !== winnerKey) {
+      prevWinnerRef.current = winnerKey;
+      setFlashId(id => id + 1);
+    }
+  }, [winnerKey]);
+
   return (
     <div className="mobile-view">
       <div className="mv-desktop-hint">{t.mobileDesktopHint ||'For bedre overblik, brug computer'}</div>
       <MobileSliders answers={answers} setAnswers={setAnswers} t={t} />
 
-      {/* Winner card */}
-      <div className="mv-winner">
+      {/* Winner card — key={flashId} forces remount so the CSS animation re-runs on change */}
+      <div className="mv-winner" key={flashId} data-flash={flashId > 0 ? 'on' : 'off'}>
         <div className="mv-winner-badge">{t.cheapest || 'Billigste valg'}</div>
         <div className="mv-winner-name">{winner.bank.name}</div>
         <div className="mv-winner-pkg">{winner.pkg.name}</div>
