@@ -4356,21 +4356,29 @@ function isCellPulsing(pkg, rowId) {
 }
 
 // ─── Mobile view (winner card + collapsed bank list) ─────────────────────────
-// Tap-friendly tooltip for mobile: shows a popup on click, closes on outside click.
+// Tap-friendly tooltip for mobile: shows a popup on tap, closes on ANY next tap
+// (including a different ? icon — that closes this one and opens the other).
 function MobileTip({ text }) {
   const [open, setOpen] = React.useState(false);
   const ref = React.useRef(null);
   React.useEffect(() => {
     if (!open) return;
-    const close = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
-    document.addEventListener('click', close);
-    return () => document.removeEventListener('click', close);
+    // Close on any document click EXCEPT our own ? button (which toggles itself).
+    // No stopPropagation on the button → tapping another ? bubbles up,
+    // closing the currently open one before the new one opens.
+    const close = (e) => {
+      if (ref.current && ref.current.contains(e.target)) return; // ignore our own button
+      setOpen(false);
+    };
+    // Use a microtask delay so the same click that opened the popup doesn't immediately close it.
+    const id = setTimeout(() => document.addEventListener('click', close), 0);
+    return () => { clearTimeout(id); document.removeEventListener('click', close); };
   }, [open]);
   if (!text) return null;
   return (
     <span className="mtip-wrap" ref={ref}>
       <button type="button" className="mtip-btn"
-        onClick={(e) => { e.stopPropagation(); setOpen(o => !o); }}
+        onClick={() => setOpen(o => !o)}
         aria-label="Mere info">?</button>
       {open && <span className="mtip-box">{text}</span>}
     </span>
