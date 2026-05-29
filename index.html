@@ -2419,7 +2419,7 @@ function convertMoneyString(str, currency, sourceHint) {
 
 const ROW_SLIDER_CONFIG = {
   extra_account_fee:    { key:'accountsNeeded',  min: 1, max: 5,    step: 1,  unit:'konti' },
-  domestic_included:    { key:'txMonth',        min: 0,  max: 500,  step: 10, unit:'stk/md'},
+  domestic_included:    { key:'txMonth',        min: 0,  max: 250,  step: 10, unit:'stk/md'},
   intl_transfer:        { key:'intlPerMonth',   min: 0,  max: 50,   step: 1,  unit:'stk/md'},
   fx_fee:               { key:'fxVolume',       min: 0,  max: 100,  step: 5,  unit:'k DKK/md'},
   payroll:              { key:'payrollPerMo',   min: 0,  max: 50,   step: 1,  unit:'ans/md'},
@@ -4308,7 +4308,7 @@ function isCellPulsing(pkg, rowId) {
 function MobileSliders({ answers, setAnswers, t }) {
   const cfgs = [
     { key: 'accountsNeeded',  label: t.rowLabels?.extra_account_fee    || 'Antal konti',          min: 1, max: 5,   step: 1,  unit: 'konti' },
-    { key: 'txMonth',         label: t.rowLabels?.domestic_included    || 'Overførsler',         min: 0, max: 500, step: 10, unit: 'stk/md' },
+    { key: 'txMonth',         label: t.rowLabels?.domestic_included    || 'Overførsler',         min: 0, max: 250, step: 10, unit: 'stk/md' },
     { key: 'intlPerMonth',    label: t.rowLabels?.intl_transfer        || 'Internationale ovf.', min: 0, max: 50,  step: 1,  unit: 'stk/md' },
     { key: 'fxVolume',        label: t.rowLabels?.fx_fee               || 'Valutaveksling',       min: 0, max: 100, step: 5,  unit: 'k DKK/md' },
     { key: 'physCardsNeeded', label: t.rowLabels?.physical_card_extra  || 'Fysiske kort',         min: 1, max: 20,  step: 1,  unit: 'kort' },
