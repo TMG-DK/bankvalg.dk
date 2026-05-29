@@ -17,9 +17,9 @@ const ROW_GROUPS = [
   { id: 'fees', label: 'Gebyrer', rows: [
     { id: 'onboarding', label: 'Oprettelsesgebyr', tooltip: 'Engangsgebyr ved oprettelse af erhvervskonto' },
     { id: 'monthly', label: 'Månedlig pris', tooltip: 'Fast månedlig abonnementspris ekskl. moms' },
-    { id: 'extra_account_fee', label: 'Konti', tooltip: 'Antal erhvervskonti inkluderet i pakken — den første er altid inkluderet i abonnementet. Pris pr. ekstra konto vises hvor det er offentligt.' },
   ]},
-  { id: 'transfers', label: 'Overførsler', rows: [
+  { id: 'transfers', label: 'Konti og overførsler', rows: [
+    { id: 'extra_account_fee', label: 'Antal konti', tooltip: 'Antal erhvervskonti inkluderet i pakken. Den første er altid inkluderet i abonnementet — brug slideren til at se prisen ved flere konti.' },
     { id: 'domestic_included', label: 'Overførsler', tooltip: 'Pris per indenlandsk overførsel. Nogle pakker inkluderer et antal gratis overførsler pr. måned, derefter betales pr. stk.' },
     { id: 'intl_transfer', label: 'Udenlandske overf.', tooltip: 'Udgående overførsler til udlandet. SEPA = EUR-betaling inden for SEPA-zonen (lavt gebyr). SWIFT = alle andre valutaer/lande (højere gebyr).' },
     { id: 'fx_fee', label: 'Valutaveksling (FX)', tooltip: 'Bankens tillæg oven i markedskursen, når der veksles fra én valuta til en anden.' },

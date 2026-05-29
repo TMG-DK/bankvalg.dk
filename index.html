@@ -2418,6 +2418,7 @@ function convertMoneyString(str, currency, sourceHint) {
 }
 
 const ROW_SLIDER_CONFIG = {
+  extra_account_fee:    { key:'accountsNeeded',  min: 1, max: 5,    step: 1,  unit:'konti' },
   domestic_included:    { key:'txMonth',        min: 0,  max: 500,  step: 10, unit:'stk/md'},
   intl_transfer:        { key:'intlPerMonth',   min: 0,  max: 50,   step: 1,  unit:'stk/md'},
   fx_fee:               { key:'fxVolume',       min: 0,  max: 100,  step: 5,  unit:'k DKK/md'},
@@ -2584,6 +2585,21 @@ function fxMonthlyCost(pkg, fxVolume) {
   return (fxVolume || 0) * 1000 * pct;
 }
 
+// Extra account monthly cost: parses pkg.extra_account_fee ("N inkl." | "N inkl. · ekstra X kr/md"
+// | "Ubegrænset inkl.") and computes overage based on accountsNeeded slider.
+function extraAccountMonthlyCost(pkg, accountsNeeded) {
+  const s = pkg.extra_account_fee ||'';
+  if (/ubegrænset/i.test(s)) return 0;
+  const inclM = s.match(/^(\d+)\s*inkl/i);
+  const included = inclM ? parseInt(inclM[1]) : 1;
+  const extra = Math.max(0, (accountsNeeded || 1) - included);
+  if (extra === 0) return 0;
+  const feeM = s.match(/ekstra\s*([\d,]+)\s*kr\/md/i);
+  if (!feeM) return 0; // no published fee — cost unknown, return 0
+  const fee = parseFloat(feeM[1].replace(',','.'));
+  return extra * fee;
+}
+
 // Physical card monthly cost: parses pkg.physical_card_extra ("N inkl. · ekstra X kr/år"
 // or "X kr/stk (engang)") and prorates based on physCardsNeeded slider.
 // "engang" (one-time) is amortized across 12 months for consistent monthly view.
@@ -2611,15 +2627,17 @@ function computeCostBreakdown(pkg, answers, year) {
   const intlPerMonth = answers.intlPerMonth || 0;
   const fxVolume = answers.fxVolume || 0;
   const cardsNeeded = answers.physCardsNeeded || 1;
+  const accountsNeeded = answers.accountsNeeded || 1;
   const onboarding = parseKr(pkg.onboarding);
   const monthly = parseKr(pkg.monthly) * 12;
   const domesticTx = Math.round(domesticMonthlyTxCost(pkg, txMonth) * 12);
   const intlTx = Math.round(intlMonthlyTxCost(pkg, intlPerMonth) * 12);
   const fx = Math.round(fxMonthlyCost(pkg, fxVolume) * 12);
   const card = Math.round(physicalCardMonthlyCost(pkg, cardsNeeded) * 12);
+  const accounts = Math.round(extraAccountMonthlyCost(pkg, accountsNeeded) * 12);
   const payroll = needsPayroll ? parseKr(pkg.payroll) * 3 * 12 : 0;
-  const annual = Math.round(monthly + domesticTx + intlTx + fx + card + payroll);
-  return { onboarding, monthly, domesticTx, intlTx, fx, card, payroll, annual };
+  const annual = Math.round(monthly + domesticTx + intlTx + fx + card + accounts + payroll);
+  return { onboarding, monthly, domesticTx, intlTx, fx, card, accounts, payroll, annual };
 }
 
 function fmtKr(n) {
@@ -2646,6 +2664,9 @@ function computeRowMonthlyCost(rowId, pkg, answers) {
     }
     case'physical_card_extra': {
       return Math.round(physicalCardMonthlyCost(pkg, answers.physCardsNeeded || 1));
+    }
+    case'extra_account_fee': {
+      return Math.round(extraAccountMonthlyCost(pkg, answers.accountsNeeded || 1));
     }
     default:
       return null;
@@ -4286,6 +4307,7 @@ function isCellPulsing(pkg, rowId) {
 // ─── Mobile view (winner card + collapsed bank list) ─────────────────────────
 function MobileSliders({ answers, setAnswers, t }) {
   const cfgs = [
+    { key: 'accountsNeeded',  label: t.rowLabels?.extra_account_fee    || 'Antal konti',          min: 1, max: 5,   step: 1,  unit: 'konti' },
     { key: 'txMonth',         label: t.rowLabels?.domestic_included    || 'Overførsler',         min: 0, max: 500, step: 10, unit: 'stk/md' },
     { key: 'intlPerMonth',    label: t.rowLabels?.intl_transfer        || 'Internationale ovf.', min: 0, max: 50,  step: 1,  unit: 'stk/md' },
     { key: 'fxVolume',        label: t.rowLabels?.fx_fee               || 'Valutaveksling',       min: 0, max: 100, step: 5,  unit: 'k DKK/md' },
